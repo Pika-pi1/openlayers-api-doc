@@ -16,13 +16,9 @@
         </div>
       </div>
       <div class="control-section">
-        <el-button @click="expandAll" size="default">
-          <el-icon><FolderOpened /></el-icon>
-          全部展开
-        </el-button>
-        <el-button @click="collapseAll" size="default">
-          <el-icon><Folder /></el-icon>
-          全部收起
+        <el-button @click="toggleExpand" size="default" :type="isAllExpanded ? 'success' : 'primary'">
+          <el-icon><component :is="isAllExpanded ? Folder : FolderOpened" /></el-icon>
+          {{ isAllExpanded ? '全部收起' : '全部展开' }}
         </el-button>
       </div>
     </div>
@@ -157,6 +153,79 @@ const currentCategory = ref('all')
 const categories = ref([])
 
 const viewApis = [
+  // ========== Overview (概述) ==========
+  {
+    name: 'overview',
+    cn: 'View 概述',
+    type: 'overview',
+    category: 'members',
+    description: 'View 对象表示地图的简单 2D 视图。这是用于更改地图中心点、分辨率和旋转角度的对象。View 有三个核心状态：center（中心点）、resolution（分辨率）和 rotation（旋转）。View 有一个 projection（投影），投影决定了中心点的坐标系，其单位决定了分辨率的单位（投影单位/像素）。默认投影是 Web Mercator (EPSG:3857)。',
+    usage: `// ============================================
+// View 类概述
+// ============================================
+// View 是 OpenLayers 地图的核心组件，用于控制地图的显示状态
+// 三个核心状态：center（中心点）、resolution（分辨率）、rotation（旋转）
+
+// 【示例 1】创建基本 View
+import { View } from 'ol';
+const view = new View({
+  center: [0, 0],  // Web Mercator 坐标
+  zoom: 2
+});
+
+// 【示例 2】View 与 Map 的关系
+import { Map, View } from 'ol';
+const map = new Map({
+  target: 'map',
+  view: new View({
+    center: fromLonLat([116.4, 39.9]),  // 北京
+    zoom: 10
+  })
+});
+
+// 【重要概念】
+// 1. 投影 (Projection): 默认 Web Mercator (EPSG:3857)
+// 2. 分辨率 (Resolution): 每像素代表的米数
+// 3. 缩放级别 (Zoom): 从分辨率计算得出
+// 4. 约束 (Constraints): 分辨率约束、旋转约束、中心点约束
+
+// 【约束类型】
+// - 分辨率约束：限制最小/最大值，可 snapped 到特定分辨率
+// - 旋转约束：可 snapped 到 90 度的倍数
+// - 中心点约束：由 extent 选项决定`,
+    params: [
+      {
+        name: 'options',
+        type: 'Object',
+        default: '{}',
+        description: 'View 配置选项对象',
+        children: [
+          { name: 'center', type: 'Coordinate|undefined', default: undefined, description: '初始中心点坐标 [x, y]（投影坐标）' },
+          { name: 'constrainRotation', type: 'boolean|number', default: 'true', description: '旋转约束。false 表示无约束；true 或数字表示约束到该数量的值（如 4 表示约束到 90 度的倍数）' },
+          { name: 'enableRotation', type: 'boolean', default: 'true', description: '是否启用旋转。如果为 false，视图不能旋转' },
+          { name: 'extent', type: 'Extent|undefined', default: undefined, description: '约束视图的范围 [minX, minY, maxX, maxY]，超出此范围不可见' },
+          { name: 'constrainOnlyCenter', type: 'boolean', default: 'false', description: '如果为 true，范围约束仅应用于视图中心，不应用于分辨率' },
+          { name: 'smoothExtentConstraint', type: 'boolean', default: 'true', description: '如果为 true，范围约束将平滑应用，允许短暂超出范围' },
+          { name: 'maxResolution', type: 'number|undefined', default: undefined, description: '最大分辨率（米/像素），用于确定分辨率约束' },
+          { name: 'minResolution', type: 'number|undefined', default: undefined, description: '最小分辨率（米/像素），用于确定分辨率约束' },
+          { name: 'maxZoom', type: 'number', default: '28', description: '最大缩放级别，用于确定分辨率约束' },
+          { name: 'minZoom', type: 'number', default: '0', description: '最小缩放级别，用于确定分辨率约束' },
+          { name: 'projection', type: 'ProjectionLike', default: 'EPSG:3857', description: '投影对象或代码。默认是 Spherical Mercator (EPSG:3857)' },
+          { name: 'resolution', type: 'number|undefined', default: undefined, description: '初始分辨率（米/像素）。如果未定义，则使用 zoom 计算' },
+          { name: 'zoom', type: 'number|undefined', default: undefined, description: '初始缩放级别。仅在 resolution 未定义时使用' },
+          { name: 'rotation', type: 'number', default: '0', description: '初始旋转角度（弧度）。正值表示顺时针旋转，0 表示正北方向' },
+          { name: 'padding', type: 'Array<number>', default: '[0, 0, 0, 0]', description: 'CSS 像素内边距 [top, right, bottom, left]，用于定义视图中心的偏移' },
+          { name: 'resolutions', type: 'Array<number>', default: undefined, description: '分辨率数组，用于定义可用的缩放级别。如果指定，将覆盖 maxResolution 和 minResolution' },
+          { name: 'zoomFactor', type: 'number', default: '2', description: '用于计算对应分辨率的缩放因子' },
+          { name: 'multiWorld', type: 'boolean', default: 'false', description: '如果为 false，视图约束为仅显示一个世界；如果为 true，可以显示多个世界' },
+          { name: 'constrainResolution', type: 'boolean', default: 'false', description: '如果为 true，视图将始终动画到最近的缩放级别；如果为 false，视图可以停在任意分辨率' },
+          { name: 'smoothResolutionConstraint', type: 'boolean', default: 'true', description: '如果为 true，分辨率最小/最大值将平滑应用' },
+          { name: 'showFullExtent', type: 'boolean', default: 'false', description: '允许视图缩放以显示完整配置的范围' }
+        ]
+      }
+    ]
+  },
+
   // ========== Constructor (构造函数) ==========
   {
     name: 'constructor',
@@ -4064,12 +4133,19 @@ const filterByCategory = (category) => {
   }
 }
 
-const expandAll = () => {
-  activeNames.value = filteredApis.value.map(api => api.name)
-}
+// 计算是否全部展开
+const isAllExpanded = computed(() => {
+  if (filteredApis.value.length === 0) return false
+  return activeNames.value.length === filteredApis.value.length
+})
 
-const collapseAll = () => {
-  activeNames.value = []
+// 切换展开/收起状态
+const toggleExpand = () => {
+  if (isAllExpanded.value) {
+    activeNames.value = []
+  } else {
+    activeNames.value = filteredApis.value.map(api => api.name)
+  }
 }
 </script>
 
@@ -4249,6 +4325,23 @@ const collapseAll = () => {
     background: white;
     border-radius: 4px;
     overflow: hidden;
+
+    // 隐藏表格占位符（避免 inline-block 占位）
+    :deep(.el-table__placeholder) {
+      display: none !important;
+    }
+
+    // 表格单元格垂直居中
+    :deep(.el-table__cell) {
+      vertical-align: middle;
+    }
+
+    // 参数名列单元格内容垂直居中
+    :deep(.el-table .cell) {
+      display: flex;
+      align-items: center;
+      min-height: 40px;
+    }
   }
 }
 
