@@ -155,6 +155,75 @@ const currentCategory = ref('all')
 const categories = ref([])
 
 const viewApis = [
+  // ========== Constructor (构造函数) ==========
+  {
+    name: 'constructor',
+    cn: '构造函数',
+    type: 'class',
+    category: 'members',
+    description: '创建一个新的 View 实例。通过传入配置对象来设置视图的初始状态，包括中心点、缩放级别、旋转角度、投影等。',
+    usage: `import {View} from 'ol';
+
+// 创建简单视图
+const view = new View({
+  center: [0, 0],
+  zoom: 2
+});
+
+// 完整配置
+const view = new View({
+  center: fromLonLat([116.4, 39.9]), // 北京
+  zoom: 10,
+  minZoom: 5,
+  maxZoom: 18,
+  rotation: 0,
+  constrainRotation: true,
+  enableRotation: true,
+  constrainResolution: true,
+  multiWorld: false,
+  showFullExtent: true
+});
+
+// 使用分辨率数组
+const view = new View({
+  center: fromLonLat([121.47, 31.23]), // 上海
+  resolutions: [4096, 2048, 1024, 512, 256, 128, 64, 32, 16, 8, 4, 2, 1],
+  zoom: 5
+});`,
+    params: [
+      {
+        name: 'options',
+        type: 'Object',
+        default: '{}',
+        description: '视图配置选项',
+        children: [
+          { name: 'center', type: 'Array<number>', default: undefined, description: '初始中心点坐标 [x, y]' },
+          { name: 'constrainRotation', type: 'boolean|number', default: 'true', description: '旋转约束。false 表示无约束，true 或数字表示约束到 90 度的倍数' },
+          { name: 'enableRotation', type: 'boolean', default: 'true', description: '是否启用旋转' },
+          { name: 'extent', type: 'Array<number>', default: undefined, description: '约束视图的范围 [minX, minY, maxX, maxY]' },
+          { name: 'constrainOnlyCenter', type: 'boolean', default: 'false', description: '如果为 true，范围约束仅应用于视图中心，不应用于分辨率' },
+          { name: 'smoothExtentConstraint', type: 'boolean', default: 'true', description: '如果为 true，范围约束将平滑应用' },
+          { name: 'maxResolution', type: 'number', default: undefined, description: '最大分辨率（米/像素），用于确定分辨率约束' },
+          { name: 'minResolution', type: 'number', default: undefined, description: '最小分辨率（米/像素），用于确定分辨率约束' },
+          { name: 'maxZoom', type: 'number', default: '28', description: '最大缩放级别' },
+          { name: 'minZoom', type: 'number', default: '0', description: '最小缩放级别' },
+          { name: 'multiWorld', type: 'boolean', default: 'false', description: '如果为 false，视图约束为仅显示一个世界；如果为 true，可以显示多个世界' },
+          { name: 'constrainResolution', type: 'boolean', default: 'false', description: '如果为 true，视图将始终动画到最近的缩放级别；如果为 false，视图可以停在任意分辨率' },
+          { name: 'smoothResolutionConstraint', type: 'boolean', default: 'true', description: '如果为 true，分辨率最小/最大值将平滑应用' },
+          { name: 'showFullExtent', type: 'boolean', default: 'false', description: '允许视图缩放以显示完整配置的范围' },
+          { name: 'projection', type: 'ProjectionLike', default: 'EPSG:3857', description: '投影对象或代码，默认为 Web Mercator (EPSG:3857)' },
+          { name: 'resolution', type: 'number', default: undefined, description: '初始分辨率（米/像素）。如果未定义，则使用 zoom 计算' },
+          { name: 'resolutions', type: 'Array<number>', default: undefined, description: '分辨率数组，用于定义可用的缩放级别。如果指定，将覆盖 maxResolution 和 minResolution' },
+          { name: 'rotation', type: 'number', default: '0', description: '初始旋转角度（弧度），正值表示顺时针旋转' },
+          { name: 'zoom', type: 'number', default: undefined, description: '初始缩放级别。仅在 resolution 未定义时使用' },
+          { name: 'zoomFactor', type: 'number', default: '2', description: '用于计算对应分辨率的缩放因子' },
+          { name: 'padding', type: 'Array<number>', default: '[0, 0, 0, 0]', description: 'CSS 像素内边距 [top, right, bottom, left]' }
+        ]
+      }
+    ],
+    returns: { type: 'View', description: '新的 View 实例' }
+  },
+
   // ========== Members (属性) ==========
   {
     name: 'padding',
@@ -293,7 +362,21 @@ view.animate({
   }
 });`,
     params: [
-      { name: 'var_args', type: '...(Object|Function)', default: undefined, description: '动画选项对象，或 (选项，回调) 序列' }
+      {
+        name: 'var_args',
+        type: '...(Object|Function)',
+        default: undefined,
+        description: '动画选项对象，或 (选项，回调) 序列',
+        children: [
+          { name: 'center', type: 'Array<number>', default: undefined, description: '动画结束时的中心点坐标 [x, y]' },
+          { name: 'zoom', type: 'number', default: undefined, description: '动画结束时的缩放级别' },
+          { name: 'resolution', type: 'number', default: undefined, description: '动画结束时的分辨率（米/像素）' },
+          { name: 'rotation', type: 'number', default: undefined, description: '动画结束时的旋转角度（弧度）' },
+          { name: 'anchor', type: 'Array<number>', default: undefined, description: '旋转或分辨率动画时的固定锚点坐标' },
+          { name: 'duration', type: 'number', default: '1000', description: '动画持续时间（毫秒）' },
+          { name: 'easing', type: 'Function', default: undefined, description: '缓动函数，如 ol.easing.easeIn, ol.easing.easeOut, ol.easing.inOut' }
+        ]
+      }
     ],
     returns: { type: 'Promise<boolean>', description: '动画完成的 Promise' }
   },
