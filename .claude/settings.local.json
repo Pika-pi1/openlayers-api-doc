@@ -4,7 +4,16 @@
       "Bash(npm install:*)",
       "Bash(npm run:*)",
       "WebFetch(domain:openlayers.org)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(gh auth:*)",
+      "Bash(winget install:*)",
+      "Bash(export PATH=\"$PATH:/c/Program Files \\(x86\\)/GitHub CLI\")",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" auth status)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" auth login --web)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" repo create openlayers-api-doc --public --source \".\" --push --description \"OpenLayers API 文档 - Vue3 + Vite + OpenLayers + Element Plus\")",
+      "Bash(git remote:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
