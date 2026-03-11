@@ -17,7 +17,29 @@
       "Bash(git push:*)",
       "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" repo view --json url -q '.url')",
       "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" api -X PUT repos/Pika-pi1/openlayers-api-doc/pages -f source='{\"\"branch\"\":\"\"master\"\",\"\"path\"\":\"\"/\"\"}')",
-      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" api -X PUT repos/Pika-pi1/openlayers-api-doc/pages -f source_branch=master -f source_path=/)"
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" api -X PUT repos/Pika-pi1/openlayers-api-doc/pages -f source_branch=master -f source_path=/)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" run list --limit 5)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" run watch)",
+      "Bash(timeout 120)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" run list --json status,conclusion -q '.[0].status')",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" run list --limit 3)",
+      "Bash(start https://github.com/Pika-pi1/openlayers-api-doc)",
+      "Bash(start https://github.com/Pika-pi1/openlayers-api-doc/settings/pages)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" api repos/Pika-pi1/openlayers-api-doc/pages)",
+      "Bash(start https://pika-pi1.github.io/openlayers-api-doc/)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" api repos/Pika-pi1/openlayers-api-doc/branches)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" run view 22935537077 --json status,conclusion,displayTitle)",
+      "Bash(curl -sI https://pika-pi1.github.io/openlayers-api-doc/)",
+      "Bash(ls -la \"d:\\\\项目\\\\AI-创新实验室\\\\openlayersApi\\\\.omc\\\\state\"\" 2>&1 || echo \"No state directory \")",
+      "Bash(curl -s https://pika-pi1.github.io/openlayers-api-doc/)",
+      "Bash(curl -sI https://pika-pi1.github.io/openlayers-api-doc/assets/index-BONRn1SM.js)",
+      "Bash(curl -sI https://pika-pi1.github.io/openlayers-api-doc/assets/index-DKtznX6Y.css)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" api repos/Pika-pi1/openlayers-api-doc/contents --accept 'application/vnd.github.v3+json')",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" api repos/Pika-pi1/openlayers-api-doc/git/trees/gh-pages --recursive)",
+      "Bash(curl -s https://pika-pi1.github.io/openlayers-api-doc/assets/index-BONRn1SM.js)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" repo view Pika-pi1/openlayers-api-doc --json defaultBranch)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" repo view Pika-pi1/openlayers-api-doc --json defaultBranchRef,name,description)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" api repos/Pika-pi1/openlayers-api-doc/git/trees/gh-pages?recursive=1 -H \"Accept: application/vnd.github.v3+json\")"
     ]
   }
 }
