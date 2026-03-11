@@ -10,13 +10,13 @@
         <el-dropdown>
           <span class="user-info">
             <el-avatar :size="32" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png" />
-            <span class="username">开发者</span>
+            <span class="username">客归秦淮红</span>
             <el-icon><ArrowDown /></el-icon>
           </span>
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item @click="openOfficialDoc">官方文档</el-dropdown-item>
-              <el-dropdown-item divided>GitHub</el-dropdown-item>
+              <el-dropdown-item divided @click="openGitHub">GitHub 仓库</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -320,6 +320,10 @@ const toggleCollapse = () => {
 const openOfficialDoc = () => {
   window.open('https://openlayers.org/en/latest/apidoc/', '_blank')
 }
+
+const openGitHub = () => {
+  window.open('https://github.com/pika-pi1', '_blank')
+}
 </script>
 
 <style lang="scss" scoped>
@@ -328,30 +332,39 @@ const openOfficialDoc = () => {
   width: 100%;
 }
 
+// ========== 头部样式优化 ==========
 .app-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  padding: 0 24px;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.25);
   z-index: 1000;
 
   .header-left {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
 
     .logo-icon {
-      font-size: 28px;
+      font-size: 32px;
       color: white;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+      transition: transform 0.3s ease;
+
+      &:hover {
+        transform: scale(1.1) rotate(5deg);
+      }
     }
 
     h1 {
       color: white;
       margin: 0;
-      font-size: 20px;
-      font-weight: 600;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
   }
 
@@ -359,59 +372,244 @@ const openOfficialDoc = () => {
     .user-info {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       cursor: pointer;
       color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.15);
+      }
+
+      .el-avatar {
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        transition: transform 0.3s ease;
+      }
+
+      &:hover .el-avatar {
+        transform: scale(1.05);
+      }
 
       .username {
         font-size: 14px;
+        font-weight: 500;
+        letter-spacing: 0.3px;
+      }
+
+      .el-icon {
+        transition: transform 0.3s ease;
+      }
+
+      &:hover .el-icon {
+        transform: rotate(180deg);
       }
     }
   }
 }
 
+// ========== 主容器样式 ==========
 .main-container {
   height: calc(100vh - 60px);
 }
 
+// ========== 侧边栏样式优化 ==========
 .app-aside {
-  background-color: #fff;
-  border-right: 1px solid #e4e7ed;
-  transition: width 0.3s;
+  background: linear-gradient(180deg, #ffffff 0%, #fafcff 100%);
+  border-right: 1px solid #e0e5f0;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
 
   .aside-header {
-    height: 50px;
+    height: 56px;
     display: flex;
     align-items: center;
-    padding: 0 16px;
-    border-bottom: 1px solid #e4e7ed;
+    padding: 0 18px;
+    border-bottom: 1px solid #e8edf5;
     font-weight: 600;
-    color: #303133;
-    gap: 8px;
+    color: #4a5568;
+    gap: 10px;
+    background: linear-gradient(90deg, #f8fafc 0%, #edf2f7 100%);
 
     .el-icon {
       cursor: pointer;
       font-size: 18px;
+      color: #667eea;
+      padding: 6px;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: rgba(102, 126, 234, 0.1);
+        transform: scale(1.1);
+      }
+    }
+
+    span {
+      font-size: 15px;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
   }
 
   .aside-menu {
     border-right: none;
-    height: calc(100vh - 110px);
+    height: calc(100vh - 116px);
     overflow-y: auto;
+    scroll-behavior: smooth;
 
-    :deep(.el-sub-menu__title) {
+    // 自定义滚动条
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+
       &:hover {
-        background-color: #f5f7fa;
+        background: #94a3b8;
+      }
+    }
+
+    // 菜单项样式
+    :deep(.el-menu-item),
+    :deep(.el-sub-menu__title) {
+      height: 46px;
+      line-height: 46px;
+      margin: 2px 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.25s ease;
+
+      .el-icon {
+        width: 20px;
+        margin-right: 10px;
+        color: #64748b;
+        transition: color 0.25s ease;
+      }
+
+      span {
+        color: #475569;
+        font-weight: 500;
+      }
+    }
+
+    // Hover 效果
+    :deep(.el-menu-item:hover),
+    :deep(.el-sub-menu__title:hover) {
+      background: linear-gradient(90deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.05));
+
+      .el-icon {
+        color: #667eea;
+      }
+
+      span {
+        color: #667eea;
+      }
+    }
+
+    // 选中状态
+    :deep(.el-menu-item.is-active) {
+      background: linear-gradient(90deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.1));
+      box-shadow: inset 3px 0 0 #667eea;
+
+      .el-icon {
+        color: #667eea;
+      }
+
+      span {
+        color: #667eea;
+        font-weight: 600;
+      }
+    }
+
+    // 子菜单样式
+    :deep(.el-sub-menu) {
+      .el-menu {
+        background: rgba(248, 250, 252, 0.5);
+        margin: 4px 0;
+        border-radius: 8px;
+      }
+
+      .el-menu-item {
+        padding-left: 48px !important;
+        font-size: 13px;
+
+        &:hover {
+          background: rgba(102, 126, 234, 0.08);
+        }
       }
     }
   }
 }
 
+// ========== 主内容区样式优化 ==========
 .app-main {
-  background-color: #f5f7fa;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   padding: 0;
   overflow: auto;
+  scroll-behavior: smooth;
+
+  // 自定义滚动条
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f5f9;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #cbd5e1, #94a3b8);
+    border-radius: 4px;
+
+    &:hover {
+      background: linear-gradient(180deg, #94a3b8, #64748b);
+    }
+  }
+}
+
+// ========== 响应式优化 ==========
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0 16px;
+
+    .header-left {
+      h1 {
+        font-size: 16px;
+      }
+    }
+
+    .header-right {
+      .user-info {
+        padding: 6px 8px;
+        gap: 6px;
+
+        .username {
+          display: none;
+        }
+      }
+    }
+  }
+
+  .app-aside {
+    .aside-header {
+      height: 48px;
+    }
+
+    .aside-menu {
+      height: calc(100vh - 108px);
+    }
+  }
 }
 </style>

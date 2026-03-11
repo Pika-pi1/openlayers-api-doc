@@ -1,154 +1,226 @@
 <template>
   <div class="api-page-container">
-    <!-- 页面标题和控制栏 -->
-    <div class="page-header">
-      <div class="title-section">
-        <h2>View - 视图控制 API</h2>
-        <p class="description">
-          OpenLayers View 用于控制地图的显示状态，包括中心点、缩放级别、旋转角度等。
-          View 是地图的核心组件之一，负责管理地图的可视区域。
-        </p>
-        <div class="official-links">
-          <el-link type="primary" href="https://openlayers.org/en/latest/apidoc/module-ol_View-View.html" target="_blank">
-            <el-icon><Link /></el-icon>
-            官方文档
-          </el-link>
-        </div>
-      </div>
-      <div class="control-section">
-        <el-button @click="toggleExpand" size="default" :type="isAllExpanded ? 'success' : 'primary'">
-          <el-icon><component :is="isAllExpanded ? Folder : FolderOpened" /></el-icon>
-          {{ isAllExpanded ? '全部收起' : '全部展开' }}
-        </el-button>
-      </div>
-    </div>
-
-    <!-- API 分类标签 -->
-    <div class="api-categories">
-      <el-tag
-        v-for="cat in categories"
-        :key="cat.name"
-        :type="currentCategory === cat.name ? 'primary' : 'info'"
-        effect="plain"
-        class="category-tag"
-        @click="filterByCategory(cat.name)"
-      >
-        {{ cat.cn }} ({{ cat.count }})
-      </el-tag>
-    </div>
-
-    <!-- API 列表 -->
-    <div class="api-list">
-      <el-collapse v-model="activeNames">
-        <el-collapse-item
-          v-for="(api, index) in filteredApis"
-          :key="api.name"
-          :name="api.name"
-        >
-          <template #title>
-            <div class="api-title">
-              <el-tag :type="getTagType(api.type)" size="small">{{ api.type }}</el-tag>
-              <span class="api-name">{{ api.name }}</span>
-              <span class="api-cn">{{ api.cn }}</span>
-            </div>
-          </template>
-
-          <div class="api-content">
-            <!-- 参数说明 -->
-            <div v-if="api.params && api.params.length" class="api-section params-section">
-              <div class="section-header">
-                <el-icon class="section-icon params-icon"><Operation /></el-icon>
-                <h4>参数说明</h4>
-              </div>
-              <el-table :data="api.params" style="width: 100%" size="small" border class="api-table" row-key="name">
-                <el-table-column type="expand" width="50">
-                  <template #default="scope">
-                    <div v-if="scope.row.children && scope.row.children.length" class="children-params">
-                      <el-table :data="scope.row.children" size="small" border class="children-table">
-                        <el-table-column prop="name" label="子参数" width="150">
-                          <template #default="child">
-                            <code class="child-param-name">{{ child.row.name }}</code>
-                          </template>
-                        </el-table-column>
-                        <el-table-column prop="type" label="类型" width="140">
-                          <template #default="child">
-                            <el-tag size="small" type="info">{{ child.row.type }}</el-tag>
-                          </template>
-                        </el-table-column>
-                        <el-table-column prop="default" label="默认值" width="120">
-                          <template #default="child">
-                            <span v-if="child.row.default" class="default-value">{{ child.row.default }}</span>
-                          </template>
-                        </el-table-column>
-                        <el-table-column prop="description" label="说明" />
-                      </el-table>
-                    </div>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="name" label="参数名" width="180">
-                  <template #default="scope">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                      <code class="param-name">{{ scope.row.name }}</code>
-                      <el-tag v-if="scope.row.children && scope.row.children.length" size="small" type="warning">可展开</el-tag>
-                    </div>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="type" label="类型" width="150">
-                  <template #default="scope">
-                    <el-tag size="small" type="info">{{ scope.row.type }}</el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="default" label="默认值" width="120">
-                  <template #default="scope">
-                    <span v-if="scope.row.default" class="default-value">{{ scope.row.default }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="description" label="说明" />
-              </el-table>
-            </div>
-
-            <!-- 功能说明 -->
-            <div class="api-section description-section">
-              <div class="section-header">
-                <el-icon class="section-icon description-icon"><Reading /></el-icon>
-                <h4>功能说明</h4>
-              </div>
-              <p class="description-text">{{ api.description }}</p>
-            </div>
-
-            <!-- 使用示例 -->
-            <div class="api-section usage-section">
-              <div class="section-header">
-                <el-icon class="section-icon usage-icon"><Console /></el-icon>
-                <h4>使用示例</h4>
-              </div>
-              <pre class="code-block"><code>{{ api.usage }}</code></pre>
-            </div>
-
-            <!-- 返回值 -->
-            <div v-if="api.returns" class="api-section returns-section">
-              <div class="section-header">
-                <el-icon class="section-icon returns-icon"><Select /></el-icon>
-                <h4>返回值</h4>
-              </div>
-              <div class="returns-content">
-                <el-tag size="small" type="success" class="return-type-tag">{{ api.returns.type }}</el-tag>
-                <span class="returns-desc">{{ api.returns.description }}</span>
-              </div>
+    <div class="page-layout">
+      <!-- 左侧：API 文档 -->
+      <div class="doc-content">
+        <!-- 页面标题和控制栏 -->
+        <div class="page-header">
+          <div class="title-section">
+            <h2>View - 视图控制 API</h2>
+            <p class="description">
+              OpenLayers View 用于控制地图的显示状态，包括中心点、缩放级别、旋转角度等。
+              View 是地图的核心组件之一，负责管理地图的可视区域。
+            </p>
+            <div class="official-links">
+              <el-link type="primary" href="https://openlayers.org/en/latest/apidoc/module-ol_View-View.html" target="_blank">
+                <el-icon><Link /></el-icon>
+                官方文档
+              </el-link>
             </div>
           </div>
-        </el-collapse-item>
-      </el-collapse>
+          <div class="control-section">
+            <el-button @click="toggleExpand" size="default" :type="isAllExpanded ? 'success' : 'primary'">
+              <el-icon><component :is="isAllExpanded ? Folder : FolderOpened" /></el-icon>
+              {{ isAllExpanded ? '全部收起' : '全部展开' }}
+            </el-button>
+          </div>
+        </div>
+
+        <!-- API 分类标签 -->
+        <div class="api-categories">
+          <el-tag
+            v-for="cat in categories"
+            :key="cat.name"
+            :type="currentCategory === cat.name ? 'primary' : 'info'"
+            effect="plain"
+            class="category-tag"
+            @click="filterByCategory(cat.name)"
+          >
+            {{ cat.cn }} ({{ cat.count }})
+          </el-tag>
+        </div>
+
+        <!-- API 列表 -->
+        <div class="api-list">
+          <el-collapse v-model="activeNames">
+            <el-collapse-item
+              v-for="(api, index) in filteredApis"
+              :key="api.name"
+              :name="api.name"
+            >
+              <template #title>
+                <div class="api-title">
+                  <div class="api-title-left">
+                    <el-tag :type="getTagType(api.type)" size="small">{{ api.type }}</el-tag>
+                    <span class="api-name">{{ api.name }}</span>
+                    <span class="api-cn">{{ api.cn }}</span>
+                  </div>
+                  <el-button
+                    v-if="api.type === 'method' || api.type === 'property'"
+                    type="primary"
+                    size="small"
+                    @click.stop="showDemo(api)"
+                    class="demo-btn-inline"
+                  >
+                    <el-icon><VideoPlay /></el-icon>
+                    演示
+                  </el-button>
+                </div>
+              </template>
+
+              <div class="api-content">
+                <!-- 参数说明 -->
+                <div v-if="api.params && api.params.length" class="api-section params-section">
+                  <div class="section-header">
+                    <el-icon class="section-icon params-icon"><Operation /></el-icon>
+                    <h4>参数说明</h4>
+                  </div>
+                  <el-table :data="api.params" style="width: 100%" size="small" border class="api-table" row-key="name">
+                    <el-table-column type="expand" width="50">
+                      <template #default="scope">
+                        <div v-if="scope.row.children && scope.row.children.length" class="children-params">
+                          <el-table :data="scope.row.children" size="small" border class="children-table">
+                            <el-table-column prop="name" label="子参数" width="200">
+                              <template #default="child">
+                                <code class="child-param-name">{{ child.row.name }}</code>
+                              </template>
+                            </el-table-column>
+                            <el-table-column prop="type" label="类型" width="180">
+                              <template #default="child">
+                                <el-tag size="small" type="info">{{ child.row.type }}</el-tag>
+                              </template>
+                            </el-table-column>
+                            <el-table-column prop="default" label="默认值" width="140">
+                              <template #default="child">
+                                <span v-if="child.row.default" class="default-value">{{ child.row.default }}</span>
+                              </template>
+                            </el-table-column>
+                            <el-table-column prop="description" label="说明" />
+                          </el-table>
+                        </div>
+                      </template>
+                    </el-table-column>
+                    <el-table-column prop="name" label="参数名" width="180">
+                      <template #default="scope">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                          <code class="param-name">{{ scope.row.name }}</code>
+                          <el-tag v-if="scope.row.children && scope.row.children.length" size="small" type="warning">可展开</el-tag>
+                        </div>
+                      </template>
+                    </el-table-column>
+                    <el-table-column prop="type" label="类型" width="150">
+                      <template #default="scope">
+                        <el-tag size="small" type="info">{{ scope.row.type }}</el-tag>
+                      </template>
+                    </el-table-column>
+                    <el-table-column prop="default" label="默认值" width="120">
+                      <template #default="scope">
+                        <span v-if="scope.row.default" class="default-value">{{ scope.row.default }}</span>
+                      </template>
+                    </el-table-column>
+                    <el-table-column prop="description" label="说明" />
+                  </el-table>
+                </div>
+
+                <!-- 功能说明 -->
+                <div class="api-section description-section">
+                  <div class="section-header">
+                    <el-icon class="section-icon description-icon"><Reading /></el-icon>
+                    <h4>功能说明</h4>
+                  </div>
+                  <p class="description-text">{{ api.description }}</p>
+                </div>
+
+                <!-- 使用示例 -->
+                <div class="api-section usage-section">
+                  <div class="section-header">
+                    <el-icon class="section-icon usage-icon"><Console /></el-icon>
+                    <h4>使用示例</h4>
+                  </div>
+                  <pre class="code-block"><code>{{ api.usage }}</code></pre>
+                </div>
+
+                <!-- 返回值 -->
+                <div v-if="api.returns" class="api-section returns-section">
+                  <div class="section-header">
+                    <el-icon class="section-icon returns-icon"><Select /></el-icon>
+                    <h4>返回值</h4>
+                  </div>
+                  <div class="returns-content">
+                    <el-tag size="small" type="success" class="return-type-tag">{{ api.returns.type }}</el-tag>
+                    <span class="returns-desc">{{ api.returns.description }}</span>
+                  </div>
+                </div>
+              </div>
+            </el-collapse-item>
+          </el-collapse>
+        </div>
+      </div>
+
+      <!-- 右侧演示面板 -->
+      <div class="demo-panel-wrapper">
+        <ViewDemoMap ref="demoMapRef" />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
+import ViewDemoMap from '@/components/ViewDemoMap.vue'
 
 // 默认展开第一个
 const activeNames = ref(['constructor'])
 const currentCategory = ref('all')
+
+// 演示地图引用
+const demoMapRef = ref(null)
+
+// API 演示映射表
+const apiDemoMap = {
+  // Methods - 可交互演示
+  'adjustCenter': { type: 'adjustCenter', tip: '使用滑块调整东西/南北方向的增量，点击执行查看效果' },
+  'adjustResolution': { type: 'adjustResolution', tip: '调整分辨率增量，正值降低分辨率（缩小），负值提高分辨率（放大）' },
+  'adjustRotation': { type: 'adjustRotation', tip: '调整旋转角度增量，正值顺时针旋转，负值逆时针旋转' },
+  'adjustZoom': { type: 'adjustZoom', tip: '调整缩放级别增量，正值放大，负值缩小' },
+  'animate': { type: 'animate', tip: '设置目标位置、缩放和时长，执行平滑动画过渡' },
+  'cancelAnimations': { type: 'cancelAnimations', tip: '点击按钮将立即取消所有正在执行的动画' },
+  'constrainResolution': { type: 'constrainResolution', tip: '开启后，缩放时会自动吸附到最近的整数级别' },
+  'fit': { type: 'fit', tip: '选择一个预设范围，地图会自动适配到该范围' },
+  'rotate': { type: 'rotate', tip: '设置目标旋转角度，可选择是否使用动画过渡' },
+  'setCenter': { type: 'setCenter', tip: '输入经纬度坐标，点击设置将地图中心移动到该位置' },
+  'setResolution': { type: 'setResolution', tip: '直接设置分辨率值（米/像素）' },
+  'setRotation': { type: 'setRotation', tip: '直接设置旋转角度（弧度），0 表示正北方向' },
+  'setZoom': { type: 'setZoom', tip: '直接设置缩放级别，数值越大地图越详细' },
+  'zoomToExtent': { type: 'zoomToExtent', tip: '选择一个预设范围，地图会缩放到该范围' },
+  // Methods - 获取类（显示当前值）
+  'getCenter': { type: 'getCenter', tip: '显示当前视图中心点坐标（经纬度）' },
+  'getZoom': { type: 'getZoom', tip: '显示当前视图缩放级别' },
+  'getRotation': { type: 'getRotation', tip: '显示当前视图旋转角度（弧度和角度）' },
+  'getResolution': { type: 'getResolution', tip: '显示当前视图分辨率（米/像素）' },
+  // Properties
+  'padding': { type: 'padding', tip: '调整内边距，用于侧边栏覆盖时的中心偏移' }
+}
+
+// 显示演示
+const showDemo = (api) => {
+  const demoInfo = apiDemoMap[api.name]
+  if (demoInfo && demoMapRef.value) {
+    demoMapRef.value.executeDemo(api.name, {
+      cn: api.cn,
+      tip: demoInfo.tip
+    })
+    // 滚动到演示区域
+    setTimeout(() => {
+      document.querySelector('.demo-panel-wrapper')?.scrollIntoView({ behavior: 'smooth' })
+    }, 300)
+  } else if (demoMapRef.value) {
+    demoMapRef.value.executeDemo(api.name, {
+      cn: api.cn,
+      tip: '该 API 的演示功能开发中...'
+    })
+  }
+}
 
 const categories = ref([])
 
@@ -4151,68 +4223,93 @@ const toggleExpand = () => {
 
 <style lang="scss" scoped>
 .api-page-container {
-  padding: 20px;
+  padding: 24px;
   min-height: 100%;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
+// ========== 页面头部样式优化 ==========
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 20px;
-  padding: 24px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+  padding: 28px 32px;
+  background: linear-gradient(135deg, #ffffff 0%, #fafcff 100%);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.12);
+  border: 1px solid rgba(102, 126, 234, 0.08);
 
   .title-section {
     flex: 1;
 
     h2 {
-      margin: 0 0 12px 0;
-      color: #303133;
-      font-size: 26px;
-      font-weight: 600;
+      margin: 0 0 14px 0;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
     }
 
     .description {
-      margin: 0 0 16px 0;
-      color: #606266;
-      font-size: 14px;
-      line-height: 1.8;
+      margin: 0 0 18px 0;
+      color: #64748b;
+      font-size: 15px;
+      line-height: 1.9;
+      font-weight: 400;
     }
 
     .official-links {
       display: flex;
       gap: 12px;
+
+      .el-link {
+        .el-icon {
+          margin-right: 4px;
+        }
+      }
     }
   }
 
   .control-section {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     flex-shrink: 0;
+    margin-left: 20px;
   }
 }
 
+// ========== API 分类标签优化 ==========
 .api-categories {
   display: flex;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   flex-wrap: wrap;
 
   .category-tag {
     cursor: pointer;
-    padding: 6px 16px;
+    padding: 8px 18px;
     font-size: 14px;
-    transition: all 0.3s;
+    font-weight: 500;
+    border-radius: 20px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid transparent;
 
     &:hover {
-      transform: translateY(-2px);
+      transform: translateY(-3px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    }
+
+    &.is-active {
+      border-color: #667eea;
     }
   }
 }
 
+// ========== API 列表样式优化 ==========
 .api-list {
   :deep(.el-collapse) {
     border-top: none;
@@ -4221,24 +4318,33 @@ const toggleExpand = () => {
   }
 
   :deep(.el-collapse-item__header) {
-    padding: 16px 20px;
+    padding: 18px 24px;
     font-size: 15px;
-    color: #303133;
-    background: white;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    transition: all 0.3s;
-    border: none;
+    color: #2d3748;
+    background: linear-gradient(135deg, #ffffff 0%, #fafcff 100%);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
 
     &:hover {
-      background: #f5f7fa;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      box-shadow: 0 4px 16px rgba(102, 126, 234, 0.12);
+      border-color: #cbd5e1;
+      transform: translateY(-2px);
     }
 
     &.is-active {
-      background: #ecf5ff;
-      box-shadow: 0 4px 16px rgba(64, 158, 255, 0.15);
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.05));
+      box-shadow: 0 4px 20px rgba(102, 126, 234, 0.2);
+      border-color: #667eea;
+    }
+
+    .el-collapse-item__arrow {
+      color: #94a3b8;
+      transition: transform 0.3s ease;
     }
   }
 
@@ -4250,27 +4356,64 @@ const toggleExpand = () => {
 .api-title {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
 
+  .api-title-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
   .api-name {
-    font-weight: 600;
+    font-weight: 700;
     font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-    color: #409eff;
-    font-size: 16px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 17px;
+    letter-spacing: 0.3px;
   }
 
   .api-cn {
-    color: #606266;
+    color: #64748b;
     font-weight: 400;
     font-size: 14px;
+  }
+
+  .demo-btn-inline {
+    margin-left: auto;
+    padding: 5px 12px;
+    font-size: 12px;
+    height: 30px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+    color: white;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    transition: all 0.25s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .el-icon {
+      margin-right: 4px;
+    }
   }
 }
 
 .api-content {
-  padding: 20px;
-  background: #fafafa;
-  border-radius: 0 0 8px 8px;
+  padding: 24px;
+  background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+  border-radius: 0 0 12px 12px;
+  border: 1px solid #e2e8f0;
+  border-top: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
 }
 
 // API 区块通用样式
@@ -4461,6 +4604,47 @@ const toggleExpand = () => {
       font-family: 'Consolas', 'Monaco', monospace;
       font-size: 13px;
     }
+  }
+}
+
+// 页面布局样式
+.api-page-container {
+  position: relative;
+}
+
+.page-layout {
+  margin-right: 440px;
+}
+
+.demo-panel-wrapper {
+  position: fixed;
+  top: 80px;  // 避开顶部栏高度 (60px) + 20px 间距
+  right: 20px;
+  width: 400px;
+  z-index: 100;
+}
+
+// 响应式布局
+@media (max-width: 1400px) {
+  .page-layout {
+    margin-right: 0;
+    padding-bottom: 20px;
+  }
+
+  .demo-panel-wrapper {
+    position: static;
+    width: 100%;
+    margin-top: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-layout {
+    margin-right: 0;
+  }
+
+  .demo-panel-wrapper {
+    width: 100%;
   }
 }
 </style>
