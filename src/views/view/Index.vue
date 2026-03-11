@@ -64,10 +64,35 @@
                 <el-icon class="section-icon params-icon"><Operation /></el-icon>
                 <h4>参数说明</h4>
               </div>
-              <el-table :data="api.params" style="width: 100%" size="small" border class="api-table">
+              <el-table :data="api.params" style="width: 100%" size="small" border class="api-table" row-key="name">
+                <el-table-column type="expand" width="50">
+                  <template #default="scope">
+                    <div v-if="scope.row.children && scope.row.children.length" class="children-params">
+                      <el-table :data="scope.row.children" size="small" border class="children-table">
+                        <el-table-column prop="name" label="子参数" width="150">
+                          <template #default="child">
+                            <code class="child-param-name">{{ child.row.name }}</code>
+                          </template>
+                        </el-table-column>
+                        <el-table-column prop="type" label="类型" width="140">
+                          <template #default="child">
+                            <el-tag size="small" type="info">{{ child.row.type }}</el-tag>
+                          </template>
+                        </el-table-column>
+                        <el-table-column prop="default" label="默认值" width="120">
+                          <template #default="child">
+                            <span v-if="child.row.default" class="default-value">{{ child.row.default }}</span>
+                          </template>
+                        </el-table-column>
+                        <el-table-column prop="description" label="说明" />
+                      </el-table>
+                    </div>
+                  </template>
+                </el-table-column>
                 <el-table-column prop="name" label="参数名" width="180">
                   <template #default="scope">
                     <code class="param-name">{{ scope.row.name }}</code>
+                    <el-tag v-if="scope.row.children && scope.row.children.length" size="small" type="warning" style="margin-left: 8px">可展开</el-tag>
                   </template>
                 </el-table-column>
                 <el-table-column prop="type" label="类型" width="150">
@@ -438,7 +463,23 @@ features.forEach(feature => {
 view.fit(extent, { padding: [50, 50, 50, 50] });`,
     params: [
       { name: 'geometryOrExtent', type: 'Geometry|Extent', default: undefined, description: '几何对象或边界框 [minX, minY, maxX, maxY]' },
-      { name: 'options', type: 'Object', default: '{}', description: '可选配置项' }
+      {
+        name: 'options',
+        type: 'Object',
+        default: '{}',
+        description: '可选配置项',
+        children: [
+          { name: 'size', type: 'Array<number>', default: '地图视口大小', description: '适配的目标大小 [width, height]，默认使用地图视口' },
+          { name: 'padding', type: 'Array<number>', default: '[0, 0, 0, 0]', description: '内边距 [top, right, bottom, left]，单位为像素，用于在目标区域周围留白' },
+          { name: 'nearest', type: 'boolean', default: 'false', description: '是否缩放到最近的整数级别，当 constrainResolution 为 true 时有效' },
+          { name: 'minResolution', type: 'number', default: '0', description: '允许的最小分辨率（米/像素），限制最大缩放' },
+          { name: 'maxZoom', type: 'number', default: '视图最大缩放', description: '允许的最大缩放级别，防止缩放过近' },
+          { name: 'minZoom', type: 'number', default: '视图最小缩放', description: '允许的最小缩放级别，防止缩放过远' },
+          { name: 'duration', type: 'number', default: '0', description: '动画持续时间（毫秒），设为 0 立即完成' },
+          { name: 'easing', type: 'Function', default: 'ol.easing.easeOut', description: '缓动函数，控制动画节奏，如 ol.easing.in, ol.easing.out, ol.easing.inOut' },
+          { name: 'callback', type: 'Function', default: undefined, description: '动画完成后的回调函数，参数为布尔值表示是否完成' }
+        ]
+      }
     ],
     returns: { type: 'number|undefined', description: '缩放级别，如果无法计算则返回 undefined' }
   },
@@ -1508,5 +1549,27 @@ const collapseAll = () => {
   color: #67c23a;
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 13px;
+}
+
+// 子参数展开区域样式
+.children-params {
+  padding: 10px 16px;
+  background: #f5f7fa;
+  border-radius: 4px;
+
+  .children-table {
+    background: white;
+    border-radius: 4px;
+    overflow: hidden;
+
+    .child-param-name {
+      background: #fdf6ec;
+      color: #e6a23c;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 13px;
+    }
+  }
 }
 </style>
