@@ -38,8 +38,6 @@ const routes = [
       { path: 'source/bingmaps', name: 'source-bingmaps', component: () => import('@/views/source/BingMaps.vue'), meta: { title: 'BingMaps', category: 'source' } },
       { path: 'source/cluster', name: 'source-cluster', component: () => import('@/views/source/Cluster.vue'), meta: { title: 'Cluster', category: 'source' } },
       { path: 'source/geojson', name: 'source-geojson', component: () => import('@/views/source/GeoJSON.vue'), meta: { title: 'GeoJSON', category: 'source' } },
-      { path: 'source/google', name: 'source-google', component: () => import('@/views/source/Google.vue'), meta: { title: 'Google', category: 'source' } },
-      { path: 'source/graticule', name: 'source-graticule', component: () => import('@/views/source/Graticule.vue'), meta: { title: 'Graticule', category: 'source' } },
       { path: 'source/image', name: 'source-image', component: () => import('@/views/source/Image.vue'), meta: { title: 'ImageSource', category: 'source' } },
       { path: 'source/image-arcgis-rest', name: 'source-image-arcgis-rest', component: () => import('@/views/source/ImageArcGISRest.vue'), meta: { title: 'ImageArcGISRest', category: 'source' } },
       { path: 'source/image-canvas', name: 'source-image-canvas', component: () => import('@/views/source/ImageCanvas.vue'), meta: { title: 'ImageCanvas', category: 'source' } },
@@ -140,7 +138,7 @@ const routes = [
       { path: 'proj/projections', name: 'proj-projections', component: () => import('@/views/proj/Projections.vue'), meta: { title: 'projections', category: 'proj' } },
       { path: 'proj/transforms', name: 'proj-transforms', component: () => import('@/views/proj/Transforms.vue'), meta: { title: 'transforms', category: 'proj' } },
       { path: 'proj/epsg4326', name: 'proj-epsg4326', component: () => import('@/views/proj/EPSG4326.vue'), meta: { title: 'EPSG:4326', category: 'proj' } },
-      { path: 'proj/epsg3857', name: 'proj-epsg3857', component: () => import('@/views/proj/EPDG3857.vue'), meta: { title: 'EPSG:3857', category: 'proj' } },
+      { path: 'proj/epsg3857', name: 'proj-epsg3857', component: () => import('@/views/proj/EPSG3857.vue'), meta: { title: 'EPSG:3857', category: 'proj' } },
 
       // Format - 格式
       { path: 'format/feature', name: 'format-feature', component: () => import('@/views/format/Feature.vue'), meta: { title: 'FeatureFormat', category: 'format' } },

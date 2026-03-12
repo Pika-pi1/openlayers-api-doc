@@ -184,8 +184,8 @@
     </div>
 
     <!-- 右侧：演示面板 -->
-    <div v-if="currentDemo" class="demo-panel-wrapper">
-      <ViewDemoMap ref="demoMapRef" />
+    <div class="demo-panel-wrapper">
+      <VectorSourceDemoMap ref="demoMapRef" />
     </div>
   </div>
 </template>
@@ -194,7 +194,7 @@
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Folder, FolderOpened, VideoPlay, Operation, CircleCheck, Link, Document, Connection } from '@element-plus/icons-vue'
-import ViewDemoMap from '@/components/ViewDemoMap.vue'
+import VectorSourceDemoMap from '@/components/VectorSourceDemoMap.vue'
 import { getRoute, hasRoute, getTypeInfo } from '@/utils/apiRoutes'
 
 const router = useRouter()
@@ -1161,18 +1161,39 @@ const navigateToRoute = (route) => {
 }
 
 // 演示相关
-const currentDemo = ref(null)
 const demoMapRef = ref(null)
 
+// API 演示映射表
+const apiDemoMap = {
+  'addFeature': { type: 'addFeature', tip: '添加一个要素到数据源' },
+  'addFeatures': { type: 'addFeatures', tip: '批量添加多个要素到数据源' },
+  'removeFeature': { type: 'removeFeature', tip: '从数据源移除一个要素' },
+  'clear': { type: 'clear', tip: '清空数据源中的所有要素' },
+  'getFeatures': { type: 'getFeatures', tip: '获取所有要素的快照数组' },
+  'getFeaturesInExtent': { type: 'getFeaturesInExtent', tip: '获取指定范围内的所有要素' },
+  'getFeatureById': { type: 'getFeatureById', tip: '根据 ID 获取要素' },
+  'getExtent': { type: 'getExtent', tip: '获取数据源的Extent' },
+  'getFeaturesCollection': { type: 'getFeaturesCollection', tip: '获取要素集合' }
+}
+
+// 显示演示
 const showDemo = (api) => {
-  currentDemo.value = api
-  // 滚动到演示面板
-  setTimeout(() => {
-    const demoPanel = document.querySelector('.demo-panel-wrapper')
-    if (demoPanel) {
-      demoPanel.scrollIntoView({ behavior: 'smooth' })
-    }
-  }, 100)
+  const demoInfo = apiDemoMap[api.name]
+  if (demoInfo && demoMapRef.value) {
+    demoMapRef.value.executeDemo(api.name, {
+      cn: api.cn,
+      tip: demoInfo.tip
+    })
+    // 滚动到演示区域
+    setTimeout(() => {
+      document.querySelector('.demo-panel-wrapper')?.scrollIntoView({ behavior: 'smooth' })
+    }, 300)
+  } else if (demoMapRef.value) {
+    demoMapRef.value.executeDemo(api.name, {
+      cn: api.cn,
+      tip: '该 API 的演示功能开发中...'
+    })
+  }
 }
 </script>
 

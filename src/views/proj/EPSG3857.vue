@@ -4,13 +4,14 @@
       <div class="doc-content">
         <div class="page-header">
           <div class="title-section">
-            <h2>TileImage - 瓦片图像源 API</h2>
+            <h2>EPSG:3857 - Web Mercator 投影</h2>
             <p class="description">
-              TileImage 是用于加载瓦片图像的源类基类。
-              它为 XYZ、OSM、WMTS 等瓦片源提供核心功能，处理瓦片图像的加载和缓存。
+              EPSG:3857 是 Web Mercator 投影的代码，也称为 Google Web Mercator 或 Spherical Mercator。
+              这是 Google Maps、OpenStreetMap、Bing Maps 等主流在线地图服务使用的投影。
+              OpenLayers 内部默认使用此投影。
             </p>
             <div class="official-links">
-              <el-link type="primary" href="https://openlayers.org/en/latest/apidoc/module-ol_source_TileImage-TileImage.html" target="_blank">
+              <el-link type="primary" href="https://openlayers.org/en/latest/apidoc/module-ol_proj_epsg3857.html" target="_blank">
                 <el-icon><Link /></el-icon>
                 官方文档
               </el-link>
@@ -118,13 +119,13 @@
 <script setup>
 import { ref, computed } from 'vue'
 
-const activeNames = ref(['constructor'])
+const activeNames = ref(['fromEPSG4326'])
 const currentCategory = ref('all')
 const isAllExpanded = ref(false)
 
 const toggleExpand = () => {
   isAllExpanded.value = !isAllExpanded.value
-  activeNames.value = isAllExpanded.value ? tileImageApis.map(api => api.name) : []
+  activeNames.value = isAllExpanded.value ? epsg3857Apis.map(api => api.name) : []
 }
 
 const filterByCategory = (category) => {
@@ -133,254 +134,226 @@ const filterByCategory = (category) => {
 
 const getTagType = (type) => {
   const typeMap = {
-    'constructor': 'primary',
-    'method': 'success'
+    'function': 'primary',
+    'constant': 'warning'
   }
   return typeMap[type] || 'info'
 }
 
 const categories = computed(() => {
   const cats = [
-    { name: 'all', cn: '全部', count: tileImageApis.length },
-    { name: 'constructor', cn: '构造函数', count: tileImageApis.filter(a => a.type === 'constructor').length },
-    { name: 'methods', cn: '方法', count: tileImageApis.filter(a => a.type === 'method').length }
+    { name: 'all', cn: '全部', count: epsg3857Apis.length },
+    { name: 'functions', cn: '函数', count: epsg3857Apis.filter(a => a.type === 'function').length },
+    { name: 'constants', cn: '常量', count: epsg3857Apis.filter(a => a.type === 'constant').length }
   ]
   return cats.filter(c => c.count > 0 || c.name === 'all')
 })
 
 const filteredApis = computed(() => {
-  if (currentCategory.value === 'all') return tileImageApis
-  if (currentCategory.value === 'constructor') return tileImageApis.filter(a => a.type === 'constructor')
-  if (currentCategory.value === 'methods') return tileImageApis.filter(a => a.type === 'method')
-  return tileImageApis
+  if (currentCategory.value === 'all') return epsg3857Apis
+  if (currentCategory.value === 'functions') return epsg3857Apis.filter(a => a.type === 'function')
+  if (currentCategory.value === 'constants') return epsg3857Apis.filter(a => a.type === 'constant')
+  return epsg3857Apis
 })
 
-const tileImageApis = [
+const epsg3857Apis = [
   {
-    name: 'constructor',
-    cn: '构造函数',
-    type: 'constructor',
-    category: 'constructor',
-    description: '创建一个新的 TileImage 源实例。TileImage 是瓦片图像源的基类，通常通过子类（如 XYZ、OSM、WMTS 等）使用。',
-    usage: `import TileImage from 'ol/source/TileImage.js';
-import { createXYZ } from 'ol/tilegrid.js';
+    name: 'fromEPSG4326',
+    cn: '从 EPSG:4326 转换',
+    type: 'function',
+    category: 'functions',
+    description: '将 WGS84 经纬度坐标 (EPSG:4326) 转换为 Web Mercator 投影坐标 (EPSG:3857)。这是墨卡托投影的正向变换函数。',
+    usage: `import { fromEPSG4326 } from 'ol/proj/epsg3857.js';
 
-// 创建 TileImage 源（通常通过子类使用）
-const tileImageSource = new TileImage({
-  url: 'https://example.com/tiles/{z}/{x}/{y}.png',
-  tileGrid: createXYZ(),
-  projection: 'EPSG:3857',
-  attributions: '© Map Provider'
-});
+// 将北京经纬度转换为 Web Mercator
+const beijingLonLat = [116.4, 39.9];
+const webMercator = fromEPSG4326(beijingLonLat);
+console.log(webMercator); // [12958396.72, 4865942.28]
 
-// 更常见的是使用子类
-import XYZ from 'ol/source/XYZ.js';
-import OSM from 'ol/source/OSM.js';
+// 批量转换
+const points = [
+  [116.4, 39.9],  // 北京
+  [121.4, 31.2],  // 上海
+  [113.2, 23.1]   // 广州
+];
+const transformed = points.map(p => fromEPSG4326(p));
 
-const xyzSource = new XYZ({
-  url: 'https://example.com/tiles/{z}/{x}/{y}.png'
-});
-
-const osmSource = new OSM();`,
-    params: [
-      { name: 'url', type: 'string', default: 'undefined', description: '瓦片 URL 模板，支持 {z}, {x}, {y} 变量' },
-      { name: 'tileGrid', type: 'TileGrid', default: 'undefined', description: '瓦片网格对象' },
-      { name: 'projection', type: 'string|Projection', default: '"EPSG:3857"', description: '源投影' },
-      { name: 'attributions', type: 'string|Array<string>', default: 'undefined', description: '版权信息' },
-      { name: 'cacheSize', type: 'number', default: '2048', description: '瓦片缓存大小' },
-      { name: 'crossOrigin', type: 'string', default: '"anonymous"', description: 'CORS 设置' },
-      { name: 'opaque', type: 'boolean', default: 'true', description: '瓦片是否不透明' },
-      { name: 'tileLoadFunction', type: 'Function', default: 'undefined', description: '自定义瓦片加载函数' }
-    ],
-    returns: { type: 'TileImage', description: '新的 TileImage 源实例' }
-  },
-  {
-    name: 'getUrl',
-    cn: '获取 URL',
-    type: 'method',
-    category: 'methods',
-    description: '获取瓦片 URL 模板。',
-    usage: `import XYZ from 'ol/source/XYZ.js';
-
-const source = new XYZ({
-  url: 'https://example.com/tiles/{z}/{x}/{y}.png'
-});
-
-console.log(source.getUrl()); // 'https://example.com/tiles/{z}/{x}/{y}.png'`,
-    params: [],
-    returns: { type: 'string', description: '瓦片 URL 模板' }
-  },
-  {
-    name: 'setUrl',
-    cn: '设置 URL',
-    type: 'method',
-    category: 'methods',
-    description: '设置瓦片 URL 模板。设置后会自动刷新瓦片。',
-    usage: `import XYZ from 'ol/source/XYZ.js';
-
-const source = new XYZ({
-  url: 'https://example.com/tiles/{z}/{x}/{y}.png'
-});
-
-// 更改瓦片源
-source.setUrl('https://another-example.com/tiles/{z}/{x}/{y}.png');
-
-// 瓦片会自动重新加载`,
-    params: [
-      { name: 'url', type: 'string', default: '', description: '新的瓦片 URL 模板' }
-    ],
-    returns: { type: 'void', description: '无返回值' }
-  },
-  {
-    name: 'getTileGrid',
-    cn: '获取瓦片网格',
-    type: 'method',
-    category: 'methods',
-    description: '获取源使用的瓦片网格对象。',
-    usage: `import OSM from 'ol/source/OSM.js';
-
-const source = new OSM();
-const tileGrid = source.getTileGrid();
-
-console.log(tileGrid.getMinZoom()); // 0
-console.log(tileGrid.getMaxZoom()); // 19 (OSM 默认)`,
-    params: [],
-    returns: { type: 'TileGrid', description: '瓦片网格对象' }
-  },
-  {
-    name: 'getTileLoadFunction',
-    cn: '获取加载函数',
-    type: 'method',
-    category: 'methods',
-    description: '获取当前使用的瓦片加载函数。',
-    usage: `import XYZ from 'ol/source/XYZ.js';
-
-const source = new XYZ({
-  url: 'https://example.com/tiles/{z}/{x}/{y}.png'
-});
-
-const loadFn = source.getTileLoadFunction();
-console.log(typeof loadFn); // 'function'`,
-    params: [],
-    returns: { type: 'Function', description: '瓦片加载函数' }
-  },
-  {
-    name: 'setTileLoadFunction',
-    cn: '设置加载函数',
-    type: 'method',
-    category: 'methods',
-    description: '设置自定义瓦片加载函数。可用于实现自定义的加载逻辑或错误处理。',
-    usage: `import XYZ from 'ol/source/XYZ.js';
-
-const source = new XYZ({
-  url: 'https://example.com/tiles/{z}/{x}/{y}.png'
-});
-
-// 设置自定义加载函数
-source.setTileLoadFunction((tile, src) => {
-  const img = tile.getImage();
-
-  img.onload = () => {
-    console.log('瓦片加载成功:', src);
-  };
-
-  img.onerror = () => {
-    console.error('瓦片加载失败:', src);
-    // 可以设置重试逻辑
-  };
-
-  img.src = src;
+// 在 View 中使用
+import View from 'ol/View.js';
+const view = new View({
+  center: fromEPSG4326([116.4, 39.9]),
+  zoom: 10
 });`,
     params: [
-      { name: 'tileLoadFunction', type: 'Function', default: '', description: '自定义瓦片加载函数' }
+      { name: 'input', type: 'Array<number>', default: '', description: '输入坐标数组 [经度，纬度]' },
+      { name: 'output', type: 'Array<number>', default: 'undefined', description: '输出坐标数组（可选）' },
+      { name: 'dimension', type: 'number', default: '2', description: '维度（默认 2）' },
+      { name: 'stride', type: 'number', default: 'dimension', description: '步长（默认等于 dimension）' }
     ],
-    returns: { type: 'void', description: '无返回值' }
+    returns: { type: 'Array<number>', description: 'Web Mercator 投影坐标 [x, y]' }
   },
   {
-    name: 'getOpaque',
-    cn: '获取不透明设置',
-    type: 'method',
-    category: 'methods',
-    description: '检查源是否被配置为不透明。不透明源可以优化渲染性能。',
-    usage: `import OSM from 'ol/source/OSM.js';
+    name: 'toEPSG4326',
+    cn: '转回 EPSG:4326',
+    type: 'function',
+    category: 'functions',
+    description: '将 Web Mercator 投影坐标 (EPSG:3857) 转换回 WGS84 经纬度坐标 (EPSG:4326)。这是墨卡托投影的逆变换函数。',
+    usage: `import { toEPSG4326 } from 'ol/proj/epsg3857.js';
 
-const source = new OSM();
-console.log(source.getOpaque()); // true
+// 将 Web Mercator 转换为经纬度
+const webMercator = [12958396.72, 4865942.28];
+const lonLat = toEPSG4326(webMercator);
+console.log(lonLat); // [116.4, 39.9]
 
-// 如果源有透明瓦片，应设置为 false
-source.setOpaque(false);`,
-    params: [],
-    returns: { type: 'boolean', description: '是否不透明' }
-  },
-  {
-    name: 'setOpaque',
-    cn: '设置不透明',
-    type: 'method',
-    category: 'methods',
-    description: '设置源的不透明属性。如果瓦片完全不透明，设置为 true 可以优化渲染。',
-    usage: `import XYZ from 'ol/source/XYZ.js';
-
-const source = new XYZ({
-  url: 'https://example.com/tiles/{z}/{x}/{y}.png',
-  opaque: true  // 瓦片不透明
+// 获取点击位置的经纬度
+map.on('click', (event) => {
+  const lonLat = toEPSG4326(event.coordinate);
+  console.log('点击位置经纬度:', lonLat);
 });
 
-// 动态更改
-source.setOpaque(false);  // 瓦片有透明部分`,
+// 批量转换
+const webPoints = [
+  [12958396.72, 4865942.28],
+  [13513066.33, 3658696.53]
+];
+const lonLatPoints = webPoints.map(p => toEPSG4326(p));`,
     params: [
-      { name: 'opaque', type: 'boolean', default: '', description: '是否不透明' }
+      { name: 'input', type: 'Array<number>', default: '', description: '输入坐标数组 [x, y]' },
+      { name: 'output', type: 'Array<number>', default: 'undefined', description: '输出坐标数组（可选）' },
+      { name: 'dimension', type: 'number', default: '2', description: '维度（默认 2）' },
+      { name: 'stride', type: 'number', default: 'dimension', description: '步长（默认等于 dimension）' }
     ],
-    returns: { type: 'void', description: '无返回值' }
+    returns: { type: 'Array<number>', description: 'WGS84 经纬度坐标 [经度，纬度]' }
   },
   {
-    name: 'getCacheSize',
-    cn: '获取缓存大小',
-    type: 'method',
-    category: 'methods',
-    description: '获取瓦片缓存的大小（瓦片数量）。',
-    usage: `import OSM from 'ol/source/OSM.js';
+    name: 'RADIUS',
+    cn: '地球半径',
+    type: 'constant',
+    category: 'constants',
+    description: 'WGS84 椭球体的半长轴半径，单位为米。用于 Web Mercator 投影计算。',
+    usage: `import { RADIUS } from 'ol/proj/epsg3857.js';
 
-const source = new OSM();
-console.log(source.getCacheSize()); // 2048 (默认)`,
+console.log('WGS84 半径:', RADIUS); // 6378137 米
+
+// 用于计算周长
+const circumference = 2 * Math.PI * RADIUS;
+console.log('地球赤道周长:', circumference); // 约 40075016.68 米
+
+// 在自定义投影计算中使用
+const customScale = RADIUS / 1000; // 转换为公里`,
     params: [],
-    returns: { type: 'number', description: '缓存大小' }
+    returns: { type: 'number', description: 'WGS84 半径值（6378137 米）' }
   },
   {
-    name: 'setCacheSize',
-    cn: '设置缓存大小',
-    type: 'method',
-    category: 'methods',
-    description: '设置瓦片缓存的大小。较大的缓存可以减少网络请求，但会增加内存使用。',
-    usage: `import OSM from 'ol/source/OSM.js';
+    name: 'HALF_SIZE',
+    cn: '半宽',
+    type: 'constant',
+    category: 'constants',
+    description: 'Web Mercator 投影世界范围的半边长。等于 π * RADIUS，表示从原点到世界范围边界的距离。',
+    usage: `import { HALF_SIZE } from 'ol/proj/epsg3857.js';
 
-const source = new OSM();
+console.log('半边长:', HALF_SIZE); // 约 20037508.34 米
 
-// 增加缓存大小（适合频繁平移/缩放的场景）
-source.setCacheSize(4096);
+// 计算世界范围宽度
+const worldWidth = HALF_SIZE * 2;
+console.log('世界范围宽度:', worldWidth);
 
-// 减少缓存大小（适合内存受限的场景）
-source.setCacheSize(512);`,
-    params: [
-      { name: 'size', type: 'number', default: '', description: '缓存大小（瓦片数量）' }
-    ],
-    returns: { type: 'void', description: '无返回值' }
-  },
-  {
-    name: 'refresh',
-    cn: '刷新源',
-    type: 'method',
-    category: 'methods',
-    description: '刷新源，重新加载所有瓦片。',
-    usage: `import OSM from 'ol/source/OSM.js';
-
-const source = new OSM();
-
-// 刷新源（重新加载所有瓦片）
-source.refresh();
-
-// 可用于在更改 URL 或样式后强制重新加载`,
+// 检查坐标是否在世界范围内
+function isValidWebMercator(x, y) {
+  return Math.abs(x) <= HALF_SIZE && Math.abs(y) <= HALF_SIZE;
+}`,
     params: [],
-    returns: { type: 'void', description: '无返回值' }
+    returns: { type: 'number', description: '半边长值（约 20037508.34 米）' }
+  },
+  {
+    name: 'EXTENT',
+    cn: '投影范围',
+    type: 'constant',
+    category: 'constants',
+    description: 'EPSG:3857 投影的有效范围。这是 Web Mercator 投影能够表示的坐标范围。',
+    usage: `import { EXTENT } from 'ol/proj/epsg3857.js';
+
+console.log('投影范围:', EXTENT);
+// [-20037508.342789244, -20037508.342789244, 20037508.342789244, 20037508.342789244]
+
+// 检查坐标是否在范围内
+function isInExtent(x, y) {
+  return x >= EXTENT[0] && x <= EXTENT[2] &&
+         y >= EXTENT[1] && y <= EXTENT[3];
+}
+
+// 用于设置视图范围
+import { fit } from 'ol/extent.js';
+view.fit(EXTENT);`,
+    params: [],
+    returns: { type: 'Array<number>', description: '范围数组 [minX, minY, maxX, maxY]' }
+  },
+  {
+    name: 'WORLD_EXTENT',
+    cn: '世界范围',
+    type: 'constant',
+    category: 'constants',
+    description: 'Web Mercator 投影的世界范围。与 EXTENT 类似，表示整个世界的投影范围。',
+    usage: `import { WORLD_EXTENT } from 'ol/proj/epsg3857.js';
+
+console.log('世界范围:', WORLD_EXTENT);
+// [-20037508.342789244, -20048966.1040146, 20037508.342789244, 20048966.1040146]
+
+// 注意：Y 方向范围略大于 X 方向，因为墨卡托投影在极点处趋向无穷
+
+// 用于初始化地图
+const view = new View({
+  extent: WORLD_EXTENT,
+  center: [0, 0],
+  zoom: 2
+});`,
+    params: [],
+    returns: { type: 'Array<number>', description: '世界范围数组 [minX, minY, maxX, maxY]' }
+  },
+  {
+    name: 'MAX_SAFE_Y',
+    cn: '最大安全 Y 值',
+    type: 'constant',
+    category: 'constants',
+    description: 'Y 方向的最大安全值。由于墨卡托投影在极点处趋向无穷，此值限制了有效的 Y 坐标范围。',
+    usage: `import { MAX_SAFE_Y } from 'ol/proj/epsg3857.js';
+
+console.log('最大安全 Y 值:', MAX_SAFE_Y); // 约 20048966.10 米
+
+// 检查 Y 坐标是否安全
+function isValidY(y) {
+  return Math.abs(y) <= MAX_SAFE_Y;
+}
+
+// 限制坐标范围
+function clampCoordinate(x, y) {
+  return [
+    Math.max(-HALF_SIZE, Math.min(HALF_SIZE, x)),
+    Math.max(-MAX_SAFE_Y, Math.min(MAX_SAFE_Y, y))
+  ];
+}`,
+    params: [],
+    returns: { type: 'number', description: '最大安全 Y 值（约 20048966.10 米）' }
+  },
+  {
+    name: 'PROJECTIONS',
+    cn: '投影数组',
+    type: 'constant',
+    category: 'constants',
+    description: '等于 EPSG:3857 的投影对象数组。包含所有与 EPSG:3857 等价的投影引用。',
+    usage: `import { PROJECTIONS } from 'ol/proj/epsg3857.js';
+
+console.log('EPSG:3857 投影数组:', PROJECTIONS);
+
+// 获取第一个投影
+const proj = PROJECTIONS[0];
+console.log(proj.getCode()); // 'EPSG:3857'
+
+// 检查投影是否已注册
+const isRegistered = PROJECTIONS.length > 0;
+console.log('EPSG:3857 已注册:', isRegistered);`,
+    params: [],
+    returns: { type: 'Array<Projection>', description: 'EPSG:3857 投影对象数组' }
   }
 ]
 </script>
