@@ -247,10 +247,22 @@ const view = new View({
 
 // 【示例 2】View 与 Map 的关系
 import { Map, View } from 'ol';
+import Projection from 'ol/proj/Projection';
+
+// 创建 EPSG:4326 投影对象（使用经纬度）
+const projection = new Projection({
+  code: 'EPSG:4326',
+  units: 'degrees',
+  axisOrientation: 'enu',
+  global: true,
+  extent: [-180, -90, 180, 90]
+});
+
 const map = new Map({
   target: 'map',
   view: new View({
-    center: fromLonLat([116.4, 39.9]),  // 北京
+    projection: projection,
+    center: [116.4, 39.9],  // 直接使用北京经纬度
     zoom: 10
   })
 });
@@ -313,9 +325,17 @@ const view = new View({
   zoom: 2
 });
 
-// 完整配置
+// 完整配置（使用 EPSG:4326 经纬度投影）
+import Projection from 'ol/proj/Projection';
+const projection = new Projection({
+  code: 'EPSG:4326',
+  units: 'degrees',
+  extent: [-180, -90, 180, 90]
+});
+
 const view = new View({
-  center: fromLonLat([116.4, 39.9]), // 北京
+  projection: projection,
+  center: [116.4, 39.9], // 北京经纬度
   zoom: 10,
   minZoom: 5,
   maxZoom: 18,
@@ -329,7 +349,8 @@ const view = new View({
 
 // 使用分辨率数组
 const view = new View({
-  center: fromLonLat([121.47, 31.23]), // 上海
+  projection: projection,
+  center: [121.47, 31.23], // 上海经纬度
   resolutions: [4096, 2048, 1024, 512, 256, 128, 64, 32, 16, 8, 4, 2, 1],
   zoom: 5
 });`,
@@ -644,10 +665,9 @@ view.animate({
 // 【实际应用场景】
 // ============================================
 
-// 【示例 5】定位到城市（北京）
-import {fromLonLat} from 'ol/proj';
+// 【示例 5】定位到城市（北京）- 使用经纬度
 view.animate({
-  center: fromLonLat([116.4, 39.9]),  // 北京经纬度转投影坐标
+  center: [116.4, 39.9],  // 北京经纬度
   zoom: 10,
   duration: 1500
 });
@@ -766,21 +786,15 @@ const extent = view.calculateExtent(size);
 // 【实际应用】
 // ============================================
 
-// 【示例 3】转换为经纬度范围（用于显示或 API 调用）
-import {toLonLat} from 'ol/proj';
+// 【示例 3】获取经纬度范围（使用 EPSG:4326 直接返回经纬度）
 const extent = view.calculateExtent();
 
-// 左下角坐标（西南角）
-const bottomLeft = toLonLat([extent[0], extent[1]]);
-
-// 右上角坐标（东北角）
-const topRight = toLonLat([extent[2], extent[3]]);
-
+// 直接使用 extent（已经是经纬度）
 console.log('经纬度范围:');
-console.log('  西边界:', bottomLeft[0]);  // 经度
-console.log('  南边界:', bottomLeft[1]);  // 纬度
-console.log('  东边界:', topRight[0]);   // 经度
-console.log('  北边界:', topRight[1]);   // 纬度
+console.log('  西边界:', extent[0]);  // 经度
+console.log('  南边界:', extent[1]);  // 纬度
+console.log('  东边界:', extent[2]);   // 经度
+console.log('  北边界:', extent[3]);   // 纬度
 
 // 【示例 4】获取视图范围的中心点
 const extent = view.calculateExtent();
@@ -1114,17 +1128,16 @@ if (view.getInteracting()) {
 // 应用场景：定位到要素、搜索结果显示、数据可视化
 
 // ============================================
-// 【准备工作】
+// 【说明】使用 EPSG:4326 投影，无需坐标转换
 // ============================================
-import {fromLonLat} from 'ol/proj';
 
 // ============================================
 // 【基础用法】
 // ============================================
 
 // 【示例 1】适配边界框（最简单用法）
-// bounds 格式：[minX, minY, maxX, maxY]（Web Mercator 投影坐标）
-const bounds = [12900000, 4800000, 13000000, 4900000];
+// bounds 格式：[minLon, minLat, maxLon, maxLat]（经纬度坐标）
+const bounds = [116, 39, 117, 40]; // 北京区域经纬度范围
 view.fit(bounds);
 // 效果：地图自动缩放到能完整显示该区域的级别
 
@@ -1184,15 +1197,10 @@ view.fit(extent, {
   duration: 1000
 });
 
-// 【示例 5】定位到用户输入的地理坐标范围
+// 【示例 5】定位到用户输入的地理坐标范围（使用经纬度）
 function locateToArea(west, south, east, north) {
-  // 将经纬度转换为投影坐标
-  const extent = [
-    fromLonLat([west, south])[0],  // 西边界
-    fromLonLat([west, south])[1],  // 南边界
-    fromLonLat([east, north])[0],  // 东边界
-    fromLonLat([east, north])[1]   // 北边界
-  ];
+  // 直接使用经纬度坐标
+  const extent = [west, south, east, north];
 
   view.fit(extent, {
     padding: [80, 80, 80, 80],
@@ -1204,8 +1212,8 @@ function locateToArea(west, south, east, north) {
 locateToArea(115.4, 39.4, 117.4, 40.4);
 
 // 【示例 6】适配单个点（使用 buffer 创建范围）
-const point = fromLonLat([116.4, 39.9]);  // 北京中心点
-const buffer = 10000;  // 缓冲区 10km
+const point = [116.4, 39.9];  // 北京中心点（经纬度）
+const buffer = 0.1;  // 缓冲区（经纬度单位，约 11km）
 
 // 创建一个围绕点的范围
 const pointExtent = [
@@ -1421,16 +1429,14 @@ console.log('中心点:', center);
 // 【坐标转换】
 // ============================================
 
-// 【示例 2】转换为经纬度显示（常用！）
-import {toLonLat} from 'ol/proj';
-
+// 【示例 2】获取中心点经纬度（使用 EPSG:4326 直接返回经纬度）
 const center = view.getCenter();
 if (center) {
-  const lonLat = toLonLat(center);
-  console.log('中心点经纬度:', lonLat);
+  // 直接就是经纬度，无需转换
+  console.log('中心点经纬度:', center);
   // 输出示例：[116.4, 39.9]（北京）
-  console.log('经度:', lonLat[0]);
-  console.log('纬度:', lonLat[1]);
+  console.log('经度:', center[0]);
+  console.log('纬度:', center[1]);
 }
 
 // ============================================
@@ -1442,10 +1448,7 @@ view.on('change:center', () => {
   const newCenter = view.getCenter();
   if (newCenter) {
     console.log('中心点已改变:', newCenter);
-
-    // 转换为经纬度
-    const lonLat = toLonLat(newCenter);
-    console.log('新位置：', lonLat[0].toFixed(4), '°E,', lonLat[1].toFixed(4), '°N');
+    console.log('新位置：', newCenter[0].toFixed(4), '°E,', newCenter[1].toFixed(4), '°N');
   }
 });
 
@@ -1455,10 +1458,10 @@ function saveMapState() {
   const zoom = view.getZoom();
 
   if (center) {
-    const lonLat = toLonLat(center);
+    // 直接返回经纬度
     return {
-      longitude: lonLat[0],
-      latitude: lonLat[1],
+      longitude: center[0],
+      latitude: center[1],
       zoom: zoom
     };
   }
@@ -1466,16 +1469,14 @@ function saveMapState() {
 
 // 【示例 5】恢复地图状态
 function restoreMapState(state) {
-  const center = fromLonLat([state.longitude, state.latitude]);
-  view.setCenter(center);
+  // 直接使用经纬度
+  view.setCenter([state.longitude, state.latitude]);
   view.setZoom(state.zoom);
 }
 
 // 【重要提示】
-// - getCenter() 返回的是投影坐标（EPSG:3857）
-// - 显示给用户时需要转换为经纬度（EPSG:4326）
-// - 使用 toLonLat() 进行转换
-// - 使用 fromLonLat() 进行反向转换`,
+// - 使用 EPSG:4326 投影，getCenter() 直接返回经纬度
+// - 无需进行坐标转换，可以直接使用`,
     returns: { type: 'Array<number>|undefined', description: '中心点坐标数组 [x, y]，如果未设置则返回 undefined' }
   },
   {
@@ -1850,28 +1851,21 @@ console.log('投影范围:', extent);
 // 【实际应用】
 // ============================================
 
-// 【示例 4】坐标转换时使用投影
-import {fromLonLat, toLonLat} from 'ol/proj';
-
+// 【示例 4】获取投影信息
 const projection = view.getProjection();
-
-// 经纬度转投影坐标
-const webMercator = fromLonLat([116.4, 39.9], projection);
-
-// 投影坐标转经纬度
-const lonLat = toLonLat(webMercator, projection);
+console.log('投影代码:', projection.getCode());
+console.log('投影单位:', projection.getUnits());
+console.log('投影范围:', projection.getExtent());
 
 // 【示例 5】检查投影类型
 const projection = view.getProjection();
-if (projection.getCode() === 'EPSG:3857') {
-  console.log('使用 Web Mercator 投影（在线地图标准）');
-} else if (projection.getCode() === 'EPSG:4326') {
-  console.log('使用 WGS84 投影（GPS 坐标）');
+if (projection.getCode() === 'EPSG:4326') {
+  console.log('使用 WGS84 投影（经纬度）');
 }
 
 // 【常见投影代码】
+// EPSG:4326 - WGS84（GPS、经纬度使用）本项目使用
 // EPSG:3857 - Web Mercator（Google Maps、OSM 使用）
-// EPSG:4326 - WGS84（GPS、经纬度使用）
 // EPSG:326xx - UTM 投影（区域投影）`,
     returns: { type: 'Projection', description: '投影对象' }
   },
@@ -2684,18 +2678,16 @@ view.setProperties({
 // 注意：需要传入投影坐标，不是经纬度！
 
 // ============================================
-// 【准备工作】
+// 【说明】使用 EPSG:4326 投影，无需坐标转换
 // ============================================
-import {fromLonLat} from 'ol/proj';
 
 // ============================================
 // 【基础用法】
 // ============================================
 
-// 【示例 1】直接设置中心点（北京，Web Mercator 投影）
-// fromLonLat 将经纬度 [116.4, 39.9] 转换为投影坐标
-const beijing = fromLonLat([116.4, 39.9]);
-view.setCenter(beijing);
+// 【示例 1】直接设置中心点（北京，经纬度）
+// 使用 EPSG:4326 投影，直接使用经纬度
+view.setCenter([116.4, 39.9]);
 // 效果：地图中心立即移动到北京（无动画）
 
 // ============================================
@@ -2703,9 +2695,8 @@ view.setCenter(beijing);
 // ============================================
 
 // 【示例 2】带动画过渡（推荐使用 animate）
-const beijing = fromLonLat([116.4, 39.9]);
 view.animate({
-  center: beijing,
+  center: [116.4, 39.9],
   duration: 1000  // 1 秒动画
 });
 
@@ -2719,7 +2710,7 @@ view.setCenter(center);
 // 【实际应用场景】
 // ============================================
 
-// 【示例 4】定位到用户输入的城市
+// 【示例 4】定位到用户输入的城市（使用经纬度）
 function locateCity(cityName) {
   const cities = {
     'beijing': [116.4, 39.9],
@@ -2730,8 +2721,8 @@ function locateCity(cityName) {
 
   const coords = cities[cityName.toLowerCase()];
   if (coords) {
-    const center = fromLonLat(coords);
-    view.setCenter(center);
+    // 直接使用经纬度
+    view.setCenter(coords);
   }
 }
 
@@ -3451,14 +3442,12 @@ view.on('change:center', () => {
 // 【进阶用法】
 // ============================================
 
-// 【示例 2】转换为经纬度显示
-import {toLonLat} from 'ol/proj';
-
+// 【示例 2】获取中心点经纬度（EPSG:4326 投影）
 view.on('change:center', () => {
   const center = view.getCenter();
-  const lonLat = toLonLat(center);  // [经度，纬度]
-  console.log('经度:', lonLat[0].toFixed(6));
-  console.log('纬度:', lonLat[1].toFixed(6));
+  // 使用 EPSG:4326 投影，直接就是经纬度
+  console.log('经度:', center[0].toFixed(6));
+  console.log('纬度:', center[1].toFixed(6));
 });
 
 // ============================================
@@ -3468,11 +3457,10 @@ view.on('change:center', () => {
 // 【示例 3】更新 UI 中的位置信息
 view.on('change:center', () => {
   const center = view.getCenter();
-  const lonLat = toLonLat(center);
 
-  // 更新页面上的坐标显示
-  document.getElementById('longitude').textContent = lonLat[0].toFixed(4);
-  document.getElementById('latitude').textContent = lonLat[1].toFixed(4);
+  // 更新页面上的坐标显示（直接是经纬度）
+  document.getElementById('longitude').textContent = center[0].toFixed(4);
+  document.getElementById('latitude').textContent = center[1].toFixed(4);
 });
 
 // 【示例 4】加载当前位置的周边数据
@@ -3500,13 +3488,12 @@ view.on('change:center', () => {
   }
 });
 
-// 【示例 6】Vue 组件中使用
+// 【示例 6】Vue 组件中使用（EPSG:4326 投影）
 import {ref, onUnmounted} from 'vue';
 const currentPos = ref({lng: 0, lat: 0});
 
 const centerListener = view.on('change:center', () => {
-  const [x, y] = view.getCenter();
-  const [lng, lat] = toLonLat([x, y]);
+  const [lng, lat] = view.getCenter();  // 直接获取经纬度
   currentPos.value = {lng, lat};
 });
 
@@ -3522,8 +3509,7 @@ function MapComponent() {
 
   useEffect(() => {
     const key = view.on('change:center', () => {
-      const [x, y] = view.getCenter();
-      const [lng, lat] = toLonLat([x, y]);
+      const [lng, lat] = view.getCenter();  // 直接获取经纬度
       setCenter({lng, lat});
     });
     return () => view.un(key);  // 清理

@@ -284,14 +284,6 @@
               <span class="value-label">纬度：</span>
               <span class="value-number">{{ state.center[1]?.toFixed(6) }}</span>
             </div>
-            <div class="value-item">
-              <span class="value-label">投影坐标 X：</span>
-              <span class="value-number">{{ view?.getCenter()?.[0]?.toFixed(2) || '0' }}</span>
-            </div>
-            <div class="value-item">
-              <span class="value-label">投影坐标 Y：</span>
-              <span class="value-number">{{ view?.getCenter()?.[1]?.toFixed(2) || '0' }}</span>
-            </div>
           </div>
         </div>
 
@@ -398,19 +390,20 @@ import Map from 'ol/Map'
 import View from 'ol/View'
 import TileLayer from 'ol/layer/Tile'
 import OSM from 'ol/source/OSM'
-import { fromLonLat, toLonLat } from 'ol/proj'
+import Projection from 'ol/proj/Projection'
+import { getPointResolution } from 'ol/proj'
 import Feature from 'ol/Feature'
 import Point from 'ol/geom/Point'
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
 import { Style, Icon, Fill, Stroke, Circle } from 'ol/style'
 
-// 预设范围
+// 预设范围 (使用经纬度坐标 EPSG:4326)
 const extents = {
-  china: fromLonLat([73, 18, 135, 54]), // [minLon, minLat, maxLon, maxLat]
-  beijing: fromLonLat([115.5, 39.5, 117.5, 40.5]),
-  shanghai: fromLonLat([120.5, 30.5, 122.5, 32]),
-  guangzhou: fromLonLat([112.5, 22.5, 114.5, 24])
+  china: [73, 18, 135, 54], // [minLon, minLat, maxLon, maxLat]
+  beijing: [115.5, 39.5, 117.5, 40.5],
+  shanghai: [120.5, 30.5, 122.5, 32],
+  guangzhou: [112.5, 22.5, 114.5, 24]
 }
 
 const mapContainer = ref(null)
@@ -480,11 +473,22 @@ const initMap = () => {
     })
   })
 
+  // 创建 EPSG:4326 投影对象
+  const projection = new Projection({
+    code: 'EPSG:4326',
+    units: 'degrees',
+    axisOrientation: 'enu',
+    global: true,
+    extent: [-180, -90, 180, 90]
+  })
+
   view.value = new View({
-    center: fromLonLat([116.39, 39.91]),
+    projection: projection,
+    center: [116.39, 39.91], // 直接使用经纬度
     zoom: 5,
     rotation: 0,
-    constrainResolution: false
+    constrainResolution: false,
+    extent: [-180, -90, 180, 90]
   })
 
   map.value = new Map({
@@ -511,8 +515,8 @@ const updateState = () => {
   if (!view.value) return
   const center = view.value.getCenter()
   if (center) {
-    const lonLat = toLonLat(center)
-    state.center = lonLat
+    // 直接使用经纬度，无需转换
+    state.center = center
   }
   state.zoom = view.value.getZoom() || 0
   state.resolution = view.value.getResolution() || 0
@@ -524,7 +528,8 @@ const updateMarker = (lon, lat) => {
   if (!markerLayer) return
   const source = markerLayer.getSource()
   source.clear()
-  const feature = new Feature(new Point(fromLonLat([lon, lat])))
+  // 直接使用经纬度坐标
+  const feature = new Feature(new Point([lon, lat]))
   source.addFeature(feature)
 }
 
@@ -532,7 +537,7 @@ const updateMarker = (lon, lat) => {
 const resetView = () => {
   if (view.value) {
     view.value.animate({
-      center: fromLonLat([116.39, 39.91]),
+      center: [116.39, 39.91], // 直接使用经纬度
       zoom: 5,
       rotation: 0,
       duration: 1000
@@ -591,7 +596,7 @@ const executeAdjustRotation = () => {
 // setCenter
 const executeSetCenter = () => {
   if (view.value) {
-    view.value.setCenter(fromLonLat([demoParams.setCenterLon, demoParams.setCenterLat]))
+    view.value.setCenter([demoParams.setCenterLon, demoParams.setCenterLat])
     updateMarker(demoParams.setCenterLon, demoParams.setCenterLat)
     ElMessage.success('中心点已设置')
   }
@@ -627,7 +632,7 @@ const executeRotate = () => {
 const executeAnimate = () => {
   if (view.value) {
     view.value.animate({
-      center: fromLonLat([demoParams.animateLon, demoParams.animateLat]),
+      center: [demoParams.animateLon, demoParams.animateLat], // 直接使用经纬度
       zoom: demoParams.animateZoom,
       duration: demoParams.animateDuration
     })
