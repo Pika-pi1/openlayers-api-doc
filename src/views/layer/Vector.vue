@@ -92,7 +92,19 @@
                             </el-table-column>
                             <el-table-column prop="type" label="类型" width="180">
                               <template #default="child">
-                                <el-tag size="small" type="info">{{ child.row.type }}</el-tag>
+                                <el-tag
+                                  v-if="hasRoute(child.row.type)"
+                                  size="small"
+                                  type="primary"
+                                  effect="plain"
+                                  class="clickable-type"
+                                  @click.stop="navigateToRoute(getRoute(child.row.type))"
+                                >
+                                  {{ child.row.type }}
+                                </el-tag>
+                                <el-tag v-else size="small" type="info">
+                                  {{ child.row.type }}
+                                </el-tag>
                               </template>
                             </el-table-column>
                             <el-table-column prop="default" label="默认值" width="140">
@@ -112,7 +124,19 @@
                     </el-table-column>
                     <el-table-column prop="type" label="类型" width="160">
                       <template #default="scope">
-                        <el-tag size="small" type="info">{{ scope.row.type }}</el-tag>
+                        <el-tag
+                          v-if="hasRoute(scope.row.type)"
+                          size="small"
+                          type="primary"
+                          effect="plain"
+                          class="clickable-type"
+                          @click.stop="navigateToRoute(getRoute(scope.row.type))"
+                        >
+                          {{ scope.row.type }}
+                        </el-tag>
+                        <el-tag v-else size="small" type="info">
+                          {{ scope.row.type }}
+                        </el-tag>
                       </template>
                     </el-table-column>
                     <el-table-column prop="default" label="默认值" width="120">
@@ -162,6 +186,10 @@
 import { ref, reactive, computed } from 'vue'
 import { Folder, FolderOpened, VideoPlay, Operation, CircleCheck, Link, Document } from '@element-plus/icons-vue'
 import ViewDemoMap from '@/components/ViewDemoMap.vue'
+import { useRouter } from 'vue-router'
+import { getRoute, hasRoute } from '@/utils/apiRoutes'
+
+const router = useRouter()
 
 // 展开/收起控制
 const activeNames = ref([])
@@ -1075,6 +1103,13 @@ const showDemo = (api) => {
     }
   }, 100)
 }
+
+// 路由跳转
+const navigateToRoute = (route) => {
+  if (route) {
+    router.push(route)
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -1374,6 +1409,19 @@ const showDemo = (api) => {
     position: static;
     width: 100%;
     margin-top: 20px;
+  }
+}
+
+// 可点击的类型标签
+.clickable-type {
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #409eff;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(64, 158, 255, 0.3);
   }
 }
 </style>
